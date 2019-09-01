@@ -1,2 +1,2 @@
 # thmbnlr
-thmbnlr
+Thumbnailer
