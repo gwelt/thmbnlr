@@ -42,7 +42,7 @@ Album.prototype.getInfo = function() {
 	return {"info":albumJSON,"count":count,"requests":requests,"size":size};
 }
 Album.prototype.getHTMLLinkList = function() {
-	return this.index.sort((a,b)=>{return a.url.replace(/[^\w\s]/gi,'_')>b.url.replace(/[^\w\s]/gi,'_')}).reduce((a,c)=>{return a+'<li>'+generate_HTML_image_info_snippet(c)+'</li>'},'<ul>')+'</ul>';
+	return this.index.sort((a,b)=>{return (a.url>b.url)}).reduce((a,c)=>{return a+'<li>'+generate_HTML_image_info_snippet(c)+'</li>'},'<ul>')+'</ul>';
 }
 function Image(data,url,title) {
 	this.data = data;
