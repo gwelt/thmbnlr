@@ -17,7 +17,7 @@ Album.prototype.newImage = function(data,url,title) {
 	this.removeImage(url);
 	let newImage = new Image(data,url,title);
 	this.index.push(newImage);
-	return newImage;	
+	return newImage;
 }
 Album.prototype.removeImage = function(url) {
 	this.index=this.index.filter((i)=>{return i.url!==url});
@@ -39,7 +39,7 @@ Album.prototype.getInfo = function() {
 	let size=Math.round(this.index.reduce((a,c)=>{return a+c.data.length},0)/1000)+'kb';
 	let requests=this.index.reduce((a,c)=>{return a+c.requests},0);
 	let albumJSON = JSON.stringify(this.index.map((image)=>{ var rObj={}; rObj.url=image.url; rObj.title=image.title; rObj.timestamp=image.timestamp; rObj.imagesize=image.data.length; return rObj; }));
-	return {"info":albumJSON,"count":count,"requests":requests,"size":size};
+	return {"thumbnails":albumJSON,"count":count,"requests":requests,"size":size};
 }
 Album.prototype.getHTMLLinkList = function() {
 	return this.index.sort((a,b)=>{return (a.url>b.url)}).reduce((a,c)=>{return a+'<li>'+generate_HTML_image_info_snippet(c)+'</li>'},'<ul>')+'</ul>';
@@ -57,7 +57,7 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 
 		case undefined:
 		case 'a':
-			if (/^http/i.test(req.params.second)) {
+			if (/^http.{8,}/i.test(req.params.second)) {
 				// get image by URL
 				if (album.getImageByURL(req.params.second)) {
 					let image=album.getImageByURL(req.params.second);
@@ -69,7 +69,7 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 							res.send(generate_HTML(image,'new thumbnail created'));
 						} else {res.status(404).send('not found - could not create thumbnail')}
 					});
-				}			
+				}
 			} else {
 				if (album.getRandomImage()) {
 					let image=album.getRandomImage();
@@ -92,7 +92,7 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 			req.params.first=req.params.second;
 
 		default:
-			if (/^http/i.test(req.params.first)) {
+			if (/^http.{8,}/i.test(req.params.first)) {
 				// get image by URL
 				let image=album.getImageByURL(req.params.first);
 				if (image) {
@@ -108,7 +108,7 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 							res.send(image.data);
 						} else {res.status(404).send('not found - could not create thumbnail')}
 					});
-				}			
+				}
 			} else {res.status(404).send('not found')}
 			break;
 
@@ -121,7 +121,7 @@ function generate_HTML(image,text) {
 	return '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html><head><title>thmbnlr</title></head><body><code><h3><a href='+config.subdir+'/>thmbnlr</a></h3><a href='+image.url+'><img style="height:'+config.thumbnailOptions.height+'px" src='+config.subdir+'/'+encodeURIComponent(image.url)+'></a><p>'+generate_HTML_image_info_snippet(image)+'<!--<br>'+text+'--><p>'+form+'<hr>'+album.getHTMLLinkList()+'<hr>'+stats.count+' thumbnails, '+stats.size+', '+stats.requests+' requests [<a href='+config.subdir+'/info>JSON</a>]</code></body></html>';
 }
 function generate_HTML_image_info_snippet(image) {
-	return '<a href='+config.subdir+'/a/'+encodeURIComponent(image.url)+'>'+image.url+'</a> [<a href='+image.url+'>visit</a>] [<a href='+config.subdir+'/'+encodeURIComponent(image.url)+'>PNG</a>] [<a href='+config.subdir+'/update/'+encodeURIComponent(image.url)+'>update</a>] [<a href='+config.subdir+'/remove/'+encodeURIComponent(image.url)+'>remove</a>] | '+image.title+' | '+image.data.length+' byte | '+image.requests+' requests | age '+Math.ceil((Date.now()-image.timestamp)/3600000)+' h';
+	return '<a href='+config.subdir+'/a/'+encodeURIComponent(image.url)+'>'+image.url+'</a> [<a href='+image.url+'>visit</a>] [<a href='+config.subdir+'/'+encodeURIComponent(image.url)+'>PNG</a>] [<a href='+config.subdir+'/update/'+encodeURIComponent(image.url)+'>update</a>] [<a href='+config.subdir+'/remove/'+encodeURIComponent(image.url)+'>remove</a>] | '+image.title+' | '+image.data.length+' byte | '+image.requests+' requests | age '+Math.floor((Date.now()-image.timestamp)/3600000)+' h';
 }
 
 async function puppeteer_screenshot(url,callback) {
