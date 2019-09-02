@@ -6,57 +6,65 @@
     <meta name="theme-color" content="#fff">
     <meta name="Description" content="thmbnlr">
     <style>
-        html {
+        html,input,button {
             font-family: 'monospace', 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream', 'Vera Sans Mono', 'Courier New';
             font-style: normal;
             font-weight: 400;
             font-display: fallback;
         }
-        .thumbnail {height:300px;padding-bottom:20px}
-        .thumbnail_info {padding: 0 0 20px 0;}
-        .thumbnail_dump {}
+        .thumbnail {height:300px;padding:20px;float:left;}
+        .thumbnail_info {padding:20px;}
+        .thumbnail_dump {clear:both; padding:20px;}
+        .thumbnail_add {padding:20px;}
     </style>
     <script>
-        const server='https://gwelt.net/thmbnlr';
         var info, images = {};
         function request(uri,q,callback) {
             var xmlhttp=null;
             if (window.XMLHttpRequest) {xmlhttp=new XMLHttpRequest()} else {xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")};
-            xmlhttp.onreadystatechange=function() { if (xmlhttp.readyState==4) {console.log('RESULT:'+xmlhttp.responseText); callback(xmlhttp.responseText)} }
+            xmlhttp.onreadystatechange=function() { if (xmlhttp.readyState==4) {console.log(xmlhttp.responseText); callback(xmlhttp.responseText)} }
             xmlhttp.open("post",uri,true);
             xmlhttp.setRequestHeader("Content-type","text/plain");
             xmlhttp.send(q);
-            console.log('SEND:'+q);
         }
-        function update_data(callback) {
-            request(server+'/info','',function (r) {
+        function update(url_of_image_to_show) {
+            request('info','',function (r) {
                 info=JSON.parse(r);
-                images=JSON.parse(info.thumbnails);
-                callback();
+                images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
+                if (images) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url);}
             })            
+        }
+        function show_thumbnail(url,force_reload) {
+            var force=force_reload?'/'+Math.random():'';
+            request('info/'+encodeURIComponent(url),'',function(thumbnail_info){
+                thumbnail_info=JSON.parse(thumbnail_info);
+                if (thumbnail_info.url)
+                {
+                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p>size: '+thumbnail_info.imagesize+' byte<br>requests: '+thumbnail_info.requests+'<br>age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h<p><a href='+encodeURIComponent(url)+'>PNG</a> <a href=info/'+encodeURIComponent(url)+'>JSON</a> <a href=update/'+encodeURIComponent(url)+'>update</a> <a href=remove/'+encodeURIComponent(url)+'>remove</a>';
+                    document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+encodeURIComponent(url)+force+'>';
+                }
+            });
         }
         function show_thumbs(force_reload) {
             var force=force_reload?'/'+Math.random():'';
-            document.getElementById('thmbnlr_dump').innerHTML=images.reduce((a,c)=>{return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+server+'/'+encodeURIComponent(c.url)+force+'></span> '},'')
+            document.getElementById('thmbnlr_dump').innerHTML=images.reduce((a,c)=>{return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>'+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
         }
-        function show_thumbnail(url,force_reload) {
-            var thumbnail_info=get_thumbnail_info(url);
-            var force=force_reload?'/'+Math.random():'';
-            document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+server+'/'+encodeURIComponent(url)+force+'>';
-            document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+' <a href=# onclick=update_thumbnail("'+url+'")>update</a><br>'+thumbnail_info.url;
+        function show_add_thumbnail(loading_message) {
+            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<input id=url placeholder="URL with http:// or https://" value="https://"><button onclick=add_thumbnail()>capture thumbnail</button>';
         }
-        function update_thumbnail(url) {
-            request(server+'/update/'+encodeURIComponent(url),'',function(r){update_data(function(){show_thumbs(true);show_thumbnail(url,true)})})
-        }
-        function get_thumbnail_info(url) {
-            return images.find(function (i) {return url==i.url});
+        function add_thumbnail(){
+            var url=document.getElementById('url').value;
+            show_add_thumbnail('loading '+url+' ...');
+            request(encodeURIComponent(url),'',function(){show_add_thumbnail();update(url)});
         }
     </script>
 </head>
 <body>
-    <h3>thmbnlr</h3>
+    <a href=.><h3>thmbnlr</h3></a>
     <div id=thmbnlr_thumbnail class=thumbnail></div>
     <div id=thmbnlr_thumbnail_info class=thumbnail_info></div>
     <div id=thmbnlr_dump class=thumbnail_dump></div>
-    <script>update_data(function(){show_thumbs();show_thumbnail(images[Math.floor(Math.random()*Math.floor(images.length))].url);})</script>
+    <div id=thmbnlr_add class=thumbnail_add></div>
+    <script>update();show_add_thumbnail();</script>
 </body>
+</html>
