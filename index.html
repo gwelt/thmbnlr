@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>thmbnlr</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff">
+    <meta name="Description" content="thmbnlr">
+    <style>
+        html {
+            font-family: 'monospace', 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream', 'Vera Sans Mono', 'Courier New';
+            font-style: normal;
+            font-weight: 400;
+            font-display: fallback;
+        }
+        .thumbnail {height:300px;padding-bottom:20px}
+        .thumbnail_info {padding: 0 0 20px 0;}
+        .thumbnail_dump {}
+    </style>
+    <script>
+        const server='https://gwelt.net/thmbnlr';
+        var info, images = {};
+        function request(uri,q,callback) {
+            var xmlhttp=null;
+            if (window.XMLHttpRequest) {xmlhttp=new XMLHttpRequest()} else {xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")};
+            xmlhttp.onreadystatechange=function() { if (xmlhttp.readyState==4) {console.log('RESULT:'+xmlhttp.responseText); callback(xmlhttp.responseText)} }
+            xmlhttp.open("post",uri,true);
+            xmlhttp.setRequestHeader("Content-type","text/plain");
+            xmlhttp.send(q);
+            console.log('SEND:'+q);
+        }
+        function update_data(callback) {
+            request(server+'/info','',function (r) {
+                info=JSON.parse(r);
+                images=JSON.parse(info.thumbnails);
+                callback();
+            })            
+        }
+        function show_thumbs(force_reload) {
+            var force=force_reload?'/'+Math.random():'';
+            document.getElementById('thmbnlr_dump').innerHTML=images.reduce((a,c)=>{return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+server+'/'+encodeURIComponent(c.url)+force+'></span> '},'')
+        }
+        function show_thumbnail(url,force_reload) {
+            var thumbnail_info=get_thumbnail_info(url);
+            var force=force_reload?'/'+Math.random():'';
+            document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+server+'/'+encodeURIComponent(url)+force+'>';
+            document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+' <a href=# onclick=update_thumbnail("'+url+'")>update</a><br>'+thumbnail_info.url;
+        }
+        function update_thumbnail(url) {
+            request(server+'/update/'+encodeURIComponent(url),'',function(r){update_data(function(){show_thumbs(true);show_thumbnail(url,true)})})
+        }
+        function get_thumbnail_info(url) {
+            return images.find(function (i) {return url==i.url});
+        }
+    </script>
+</head>
+<body>
+    <h3>thmbnlr</h3>
+    <div id=thmbnlr_thumbnail class=thumbnail></div>
+    <div id=thmbnlr_thumbnail_info class=thumbnail_info></div>
+    <div id=thmbnlr_dump class=thumbnail_dump></div>
+    <script>update_data(function(){show_thumbs();show_thumbnail(images[Math.floor(Math.random()*Math.floor(images.length))].url);})</script>
+</body>
