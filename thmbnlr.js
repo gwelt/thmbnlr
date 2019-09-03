@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var config = {}; try {config=require('./config.json')} catch(err){};
 var path = require('path');
 var port = process.env.PORT || config.port || 3000;
-server.listen(port, function () { console.log('SERVER LISTENING ON PORT '+port+' (http://localhost:'+port+')')});
+server.listen(port, function () { console.log('\x1b[44m SERVER LISTENING ON PORT '+port+' (http://localhost:'+port+') \x1b[0m')});
 const puppeteer = require('puppeteer');
 const sharp = require('sharp');
 sharp.cache(false);
@@ -64,10 +64,15 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 		case 'index.html':
 			res.sendFile(path.join(__dirname + '/index.html'));
 			break;
+		case 'bootstrap.min.css':
+			res.contentType('text/css');
+			res.sendFile(path.join(__dirname + '/bootstrap.min.css'));
+			break;
 
 		case 'remove':
 			album.removeImage(req.params.second);
 		case 'info':
+			res.contentType('application/json');
 			res.send(album.getInfo(req.params.second));
 			break;
 
@@ -79,18 +84,18 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 				let image=album.getImageByURL(req.params.first);
 				if (image&&image.data) {
 					// serve thumbnail from cache
-					image.requests++;
 					res.contentType('image/png');
 					res.send(image.data);
+					image.requests++;
 				} else {
 					// create new thumbnail
 					puppeteer_screenshot(req.params.first,(data,url,title)=>{
 						if (data) {
-							console.log('NEW THUMBNAIL: '+url+' TITLE: '+title+' SIZE: '+data.length);
+							console.log('THUMBNAILED '+url+' '+title+' '+data.length);
 							let image=album.newImage(data,url,title);
-							image.requests++;
 							res.contentType('image/png');
 							res.send(image.data);
+							image.requests++;
 						} else {res.status(404).send('not found - could not create thumbnail')}
 					});
 				}
@@ -110,9 +115,6 @@ async function puppeteer_screenshot(url,callback) {
 	await page.screenshot(config.screenshotOptions).catch((err) => {error=true});
 	await browser.close().catch((err) => {error=true});
 	if (!error) {
-		sharp(config.screenshotOptions.path).resize(config.thumbnailOptions).sharpen().png().toBuffer((err,data,info)=>{
-			//console.log('NEW THUMBNAIL: '+url+' TITLE: '+title+' SIZE: '+data.length);
-			callback(data,url,title);
-		});
+		sharp(config.screenshotOptions.path).resize(config.thumbnailOptions).sharpen().png().toBuffer((err,data,info)=>{callback(data,url,title)})
 	} else {callback(undefined,undefined,undefined)}
 }

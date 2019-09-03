@@ -2,12 +2,14 @@
 <html>
 <head>
     <title>thmbnlr</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#fff">
     <meta name="Description" content="thmbnlr">
+
     <style>
         html,input,button {
-            font-family: 'monospace', 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream', 'Vera Sans Mono', 'Courier New';
+            font-family: 'Courier New';
             font-style: normal;
             font-weight: 400;
             font-display: fallback;
@@ -17,6 +19,7 @@
         .thumbnail_dump {clear:both; padding:20px;}
         .thumbnail_add {padding:20px;}
     </style>
+
     <script>
         var info, images = {};
         function request(uri,q,callback) {
@@ -50,7 +53,7 @@
             document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>'+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
         }
         function show_add_thumbnail(loading_message) {
-            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<input id=url placeholder="URL with http:// or https://" value="https://"><button onclick=add_thumbnail()>capture thumbnail</button>';
+            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<form action=javascript:add_thumbnail() method=post><input placeholder="URL with http:// or https://" value="https://"><button type="submit">capture thumbnail</button></form>';
         }
         function add_thumbnail(){
             var url=document.getElementById('url').value;
@@ -64,7 +67,7 @@
     <div id=thmbnlr_thumbnail class=thumbnail></div>
     <div id=thmbnlr_thumbnail_info class=thumbnail_info></div>
     <div id=thmbnlr_dump class=thumbnail_dump></div>
-    <div id=thmbnlr_add class=thumbnail_add></div>
+    <div class=container><div id=thmbnlr_add class=thumbnail_add></div></div>
     <script>update();show_add_thumbnail();</script>
 </body>
 </html>
