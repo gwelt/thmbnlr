@@ -3,9 +3,7 @@ var app = express();
 var server = require('http').createServer(app);
 var bodyParser = require('body-parser');
 var config = {}; try {config=require('./config.json')} catch(err){};
-var indexHTML = '';
-var fs = require('fs');
-fs.readFile('./index.html', (err,html)=>{indexHTML=html});
+var path = require('path');
 var port = process.env.PORT || config.port || 3000;
 server.listen(port, function () { console.log('SERVER LISTENING ON PORT '+port+' (http://localhost:'+port+')')});
 const puppeteer = require('puppeteer');
@@ -31,21 +29,23 @@ Album.prototype.getImageByURL = function(url) {
 }
 Album.prototype.getInfo = function(url) {
 	if (url) {
+		// return info for image
 		let img=this.index.find((i)=>{return url==i.url});
 		if (img) {
 			let copy=JSON.parse(JSON.stringify(img));
-			copy.imagesize=img.data.length;
+			copy.imagesize=img.data?img.data.length:0;
 			copy.data=undefined;
 			return JSON.stringify(copy);
 		} else {return {}}
-	} else if (this.index.length) {
-		let count=this.index.length;
-		let size=Math.round(this.index.reduce((a,c)=>{return a+c.data.length},0)/1000)+'kb';
-		let requests=this.index.reduce((a,c)=>{return a+c.requests},0);
-		let albumJSON = JSON.stringify(this.index.sort((a,b)=>{return (a.url>b.url)}).map((image)=>{ var rObj={}; rObj.url=image.url; rObj.title=image.title; rObj.timestamp=image.timestamp; rObj.requests=image.requests; rObj.imagesize=image.data.length; return rObj; }));
-		return {"thumbnails":albumJSON,"count":count,"requests":requests,"size":size};
 	} else {
-		return {}
+		// create album with config.initURLs if album is empty
+		if (!this.index.length) {config.initURLs?config.initURLs.forEach((i)=>{this.newImage(undefined,i,i)}):0} 
+		// return info for album
+		let count=this.index.length;
+		let size=Math.round(this.index.reduce((a,c)=>{return a+c.data?c.data.length:0},0)/1000)+'kb';
+		let requests=this.index.reduce((a,c)=>{return a+c.requests},0);
+		let albumJSON = JSON.stringify(this.index.sort((a,b)=>{return (a.url>b.url)?1:((a.url<b.url)?-1:0)}).map((image)=>{ var rObj={}; rObj.url=image.url; rObj.title=image.title; rObj.timestamp=image.timestamp; rObj.requests=image.requests; rObj.imagesize=image.data?image.data.length:0; return rObj; }));
+		return {"thumbnails":albumJSON,"count":count,"requests":requests,"size":size};
 	}
 }
 function Image(data,url,title) {
@@ -62,7 +62,7 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 
 		case undefined:
 		case 'index.html':
-			res.send(indexHTML);
+			res.sendFile(path.join(__dirname + '/index.html'));
 			break;
 
 		case 'remove':
@@ -71,18 +71,13 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 			res.send(album.getInfo(req.params.second));
 			break;
 
-		case 'init':
-			let initHTML=config.initURLs?config.initURLs.reduce((a,c)=>{return a+='<img src='+encodeURIComponent(c)+'>'},'Initializing with '+config.initURLs.length+' sample URLs. Please wait and then <a href='+config.subdir+'/>reload</a>.<p>'):'no data - <a href=a/https%3A%2F%2Fgwelt.net%2Fsudoku>init</a>';
-			res.send(initHTML);
-			break;
-
 		case 'update':
 			album.removeImage(req.params.second);
 			req.params.first=req.params.second;
 		default:
 			if (/^http.{8,}/i.test(req.params.first)) {
 				let image=album.getImageByURL(req.params.first);
-				if (image) {
+				if (image&&image.data) {
 					// serve thumbnail from cache
 					image.requests++;
 					res.contentType('image/png');

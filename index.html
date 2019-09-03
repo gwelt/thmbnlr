@@ -31,7 +31,7 @@
             request('info','',function (r) {
                 info=JSON.parse(r);
                 images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
-                if (images) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url);}
+                if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url);}
             })            
         }
         function show_thumbnail(url,force_reload) {
