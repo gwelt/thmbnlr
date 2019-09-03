@@ -91,6 +91,7 @@ app.use('('+config.subdir+')?/:first?/:second?', function (req, res) {
 					// create new thumbnail
 					puppeteer_screenshot(req.params.first,(data,url,title)=>{
 						if (data) {
+							console.log('NEW THUMBNAIL: '+url+' TITLE: '+title+' SIZE: '+data.length);
 							let image=album.newImage(data,url,title);
 							image.requests++;
 							res.contentType('image/png');
@@ -115,8 +116,8 @@ async function puppeteer_screenshot(url,callback) {
 	await browser.close().catch((err) => {error=true});
 	if (!error) {
 		sharp(config.screenshotOptions.path).resize(config.thumbnailOptions).sharpen().png().toBuffer((err,data,info)=>{
-			console.log('NEW THUMBNAIL: '+url+' TITLE: '+title+' SIZE: '+data.length);
+			//console.log('NEW THUMBNAIL: '+url+' TITLE: '+title+' SIZE: '+data.length);
 			callback(data,url,title);
 		});
-	} else {callback()}
+	} else {callback(undefined,undefined,undefined)}
 }

@@ -47,7 +47,7 @@
         }
         function show_thumbs(force_reload) {
             var force=force_reload?'/'+Math.random():'';
-            document.getElementById('thmbnlr_dump').innerHTML=images.reduce((a,c)=>{return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>'+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
+            document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>'+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
         }
         function show_add_thumbnail(loading_message) {
             document.getElementById('thmbnlr_add').innerHTML=loading_message||'<input id=url placeholder="URL with http:// or https://" value="https://"><button onclick=add_thumbnail()>capture thumbnail</button>';
