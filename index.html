@@ -13,11 +13,56 @@
             font-style: normal;
             font-weight: 400;
             font-display: fallback;
+            border-radius: 0.25rem;
+            box-sizing: border-box;
         }
-        .thumbnail {height:300px;padding:20px;float:left;}
-        .thumbnail_info {padding:20px;}
-        .thumbnail_dump {clear:both; padding:20px;}
-        .thumbnail_add {padding:20px;}
+        a {color:#008CBA;}
+        .link {color:#008CBA; text-decoration:underline; cursor:pointer;}
+        div {
+            margin:auto;
+            border:0px solid red;
+        }
+        .container {
+            width: 640px;
+            text-align: center;
+        }
+
+        .thumbnail_title {height:20px; margin:30px; font-size: 1.3rem;}
+        .thumbnail_add {height:100px; width:640px; font-size: 1rem;}
+            .input_url {width:350px;}
+            .btn_submit {width:250px;}
+        .br {clear:both;padding:0;}
+        .thumbnail {height:300px;}
+        .thumbnail_info {padding: 20px 0 40px 0;}
+        .thumbnail_dump {padding: 20px 0 40px 0; clear:both;}
+
+        button {
+          background-color: #008CBA;
+          border: 1px solid #008CBA;
+          color: white;
+          padding: 14px 32px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 1rem;
+          margin: 4px 2px;
+          cursor: pointer;
+        }        
+        button:hover, button:focus {
+          background-color: #009DDB;
+          border: 1px solid #009DDB;
+        }        
+        input {
+          background-color: #ffffff;
+          border: 1px solid #008CBA;
+          color: #000000;
+          padding: 14px 12px;
+          text-align: left;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 1rem;
+          margin: 4px 2px;
+        }        
     </style>
 
     <script>
@@ -30,11 +75,11 @@
             xmlhttp.setRequestHeader("Content-type","text/plain");
             xmlhttp.send(q);
         }
-        function update(url_of_image_to_show) {
+        function update(url_of_image_to_show,force_reload) {
             request('info','',function (r) {
                 info=JSON.parse(r);
                 images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
-                if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url);}
+                if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url,force_reload);}
             })            
         }
         function show_thumbnail(url,force_reload) {
@@ -43,31 +88,39 @@
                 thumbnail_info=JSON.parse(thumbnail_info);
                 if (thumbnail_info.url)
                 {
-                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p>size: '+thumbnail_info.imagesize+' byte<br>requests: '+thumbnail_info.requests+'<br>age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h<p><a href='+encodeURIComponent(url)+'>PNG</a> <a href=info/'+encodeURIComponent(url)+'>JSON</a> <a href=update/'+encodeURIComponent(url)+'>update</a> <a href=remove/'+encodeURIComponent(url)+'>remove</a>';
+                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p>'+thumbnail_info.imagesize+' byte, '+thumbnail_info.requests+' requests, age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h<br><a href='+encodeURIComponent(url)+'>PNG</a> <a href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span>';
                     document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+encodeURIComponent(url)+force+'>';
                 }
             });
         }
         function show_thumbs(force_reload) {
             var force=force_reload?'/'+Math.random():'';
-            document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>'+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
+            document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>currently caching '+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
         }
         function show_add_thumbnail(loading_message) {
-            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<form action=javascript:add_thumbnail() method=post><input id=url placeholder="URL with http:// or https://" value="https://"><button type="submit">capture thumbnail</button></form>';
+            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<form action=javascript:add_thumbnail() method=post><input id=url class=input_url autocomplete=off placeholder="URL with http:// or https://" value="https://"><button class=btn_submit ="submit">thumbnail this</button></form>';
         }
-        function add_thumbnail(){
-            var url=document.getElementById('url').value;
-            show_add_thumbnail('loading '+url+' ...');
-            request(encodeURIComponent(url),'',function(){show_add_thumbnail();update(url)});
+        function add_thumbnail(url,isupdate) {
+            if (!url) {url=document.getElementById('url').value}
+            show_add_thumbnail('<br>fetching '+url+'');
+            request((isupdate?'update/':'')+encodeURIComponent(url),'',function(){show_add_thumbnail();update(url,isupdate)});
+        }
+        function remove_thumbnail(url) {
+            request('remove/'+encodeURIComponent(url),'',function(){update()});
         }
     </script>
 </head>
 <body>
-    <a href=.><h3>thmbnlr</h3></a>
-    <div id=thmbnlr_thumbnail class=thumbnail></div>
-    <div id=thmbnlr_thumbnail_info class=thumbnail_info></div>
-    <div id=thmbnlr_dump class=thumbnail_dump></div>
-    <div class=container><div id=thmbnlr_add class=thumbnail_add></div></div>
+    <div class=container>
+        <div id=thmbnlr_title class=thumbnail_title><a href=.>thmbnlr</a></div>
+        <div class=br></div>
+        <div id=thmbnlr_add class=thumbnail_add></div>
+        <div class=br></div>
+        <div id=thmbnlr_thumbnail class=thumbnail></div>
+        <div id=thmbnlr_thumbnail_info class=thumbnail_info></div>
+        <div id=thmbnlr_dump class=thumbnail_dump></div>
+    </div>
+    
     <script>update();show_add_thumbnail();</script>
 </body>
 </html>
