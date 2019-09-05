@@ -42,7 +42,7 @@ Album.prototype.getInfo = function(url) {
 		if (!this.index.length) {config.initURLs?config.initURLs.forEach((i)=>{this.newImage(undefined,i,i)}):0} 
 		// return info for album
 		let count=this.index.length;
-		let size=Math.round(this.index.reduce((a,c)=>{return a+c.data?c.data.length:0},0)/1000)+'kb';
+		let size=Math.round(this.index.reduce((a,c)=>{return a+(c.data?c.data.length:0)},0)/1000)+'kb';
 		let requests=this.index.reduce((a,c)=>{return a+c.requests},0);
 		let albumJSON = JSON.stringify(this.index.sort((a,b)=>{return (a.url>b.url)?1:((a.url<b.url)?-1:0)}).map((image)=>{ var rObj={}; rObj.url=image.url; rObj.title=image.title; rObj.timestamp=image.timestamp; rObj.requests=image.requests; rObj.imagesize=image.data?image.data.length:0; return rObj; }));
 		return {"thumbnails":albumJSON,"count":count,"requests":requests,"size":size};
