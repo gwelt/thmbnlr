@@ -8,62 +8,70 @@
     <meta name="Description" content="thmbnlr">
 
     <style>
-        html,input,button {
+        body,html,input,button {
+            padding:0; margin:0;
             font-family: Tahoma, Geneva, sans-serif;
             font-style: normal;
             font-weight: 400;
             font-display: fallback;
-            border-radius: 0.25rem;
+            border-radius: 0.15rem;
             box-sizing: border-box;
         }
-        a {color:#008CBA;}
-        .link {color:#008CBA; text-decoration:underline; cursor:pointer;}
         div {
             margin:auto;
-            border:0px solid red;
+            border:0px dotted red;
         }
+        a {color:#008CBA;}
+        .link {color:#202020; border-radius: 0.25rem; background-color:#D8D8D8; text-decoration:none; line-height:2.5rem; margin:2px; padding: 4px 8px; cursor:pointer;}
+        .link:hover {color:#ffffff; background-color:#008CBA;}
         .container {
             width: 640px;
             text-align: center;
         }
 
-        .thumbnail_title {height:20px; margin:30px; font-size: 1.3rem;}
-        .thumbnail_add {height:100px; width:640px; font-size: 1rem;}
-            .input_url {width:440px;}
-            .btn_submit {width:180px;}
+        .thumbnail_add {height:60px; margin:30px 0px; width:100%; font-size: 1rem;}
+            .input_url {width:70%;}
+            .fetching {width:98%; disabled:disabled;}
+            .btn_submit {width:25%;}
         .br {clear:both;padding:0;}
-        .thumbnail {height:300px;}
-        .thumbnail_info {padding: 20px 0 40px 0;}
-        .thumbnail_dump {padding: 20px 0 40px 0; clear:both;}
-	.thumbnail_dump img {margin:10px}
+        .thumbnail {height:300px; padding:10px 0px;}
+        .thumbnail_info {padding: 10px 0 30px 0;}
+        .thumbnail_dump {padding: 10px 0 10px 0;}
+        .thumbnail_dump img {margin:10px}
+        .thmbnlr_info {padding: 10px 0 30px 0; width:98%; border-top: 1px solid #BCBCBC;}
 
         button {
           background-color: #008CBA;
           border: 1px solid #008CBA;
-          color: white;
+          color: #ffffff;
           padding: 14px 2px;
+          outline: none;
           text-align: center;
           text-decoration: none;
           display: inline-block;
           font-size: 1rem;
           margin: 4px 8px;
           cursor: pointer;
-        }        
+        }
         button:hover, button:focus {
           background-color: #009DDB;
           border: 1px solid #009DDB;
         }        
+        button:disabled {background-color: #BCBCBC; border: 1px solid #BCBCBC;}        
         input {
-          background-color: #ffffff;
-          border: 1px solid #008CBA;
-          color: #000000;
+          background-color: #e3e3e3;
+          border: 1px solid #e3e3e3;
+          color: #505050;
           padding: 14px 12px;
+          outline: none;
           text-align: left;
           text-decoration: none;
           display: inline-block;
           font-size: 1rem;
           margin: 4px 0px;
         }        
+        input:hover, input:focus {background-color: #f3f3f3; border: 1px solid #e3e3e3; color:#202020;}        
+        input:disabled {background-color: #e3e3e3; border: 1px solid #e3e3e3;}        
     </style>
 
     <script>
@@ -89,37 +97,46 @@
                 thumbnail_info=JSON.parse(thumbnail_info);
                 if (thumbnail_info.url)
                 {
-                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p>'+thumbnail_info.imagesize+' byte, '+thumbnail_info.requests+' requests, age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h<br><a href='+encodeURIComponent(url)+'>PNG</a> | <a href=info/'+encodeURIComponent(url)+'>JSON</a> | <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> | <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span>';
+                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p><a class=link href='+encodeURIComponent(url)+'>PNG</a> <a class=link href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span><br>'+thumbnail_info.imagesize+' byte | '+thumbnail_info.requests+' requests | age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h';
                     document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+encodeURIComponent(url)+force+'>';
                 }
             });
         }
         function show_thumbs(force_reload) {
             var force=force_reload?'/'+Math.random():'';
-            document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'')+'<p>currently caching '+info.count+' thumbnails, '+info.size+', '+info.requests+' requests';
+            var e=document.getElementById('thmbnlr_dump');
+            if (e.style.display=='block') {
+                document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'');
+            }
+            document.getElementById('thmbnlr_info').innerHTML='thmbnlr is caching <span class=link onclick=toggle("thmbnlr_dump");show_thumbs();>'+info.count+' thumbnails</span> <a class=link href=info/>JSON</a> &nbsp; '+info.size+' | '+info.requests+' requests';
         }
         function show_add_thumbnail(loading_message) {
-            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<form action=javascript:add_thumbnail() method=post><input id=url class=input_url autocomplete=off placeholder="URL with http:// or https://" value="https://"><button class=btn_submit ="submit">thumbnail this</button></form>';
+            document.getElementById('thmbnlr_add').innerHTML=loading_message||'<form action=javascript:add_thumbnail() method=post><input id=url class=input_url autocomplete=off placeholder="URL with http:// or https://" value="https://"><button class=btn_submit>thumbnail this</button></form>';
         }
         function add_thumbnail(url,isupdate) {
             if (!url) {url=document.getElementById('url').value}
-            show_add_thumbnail('<br>fetching '+url+'');
-            request((isupdate?'update/':'')+encodeURIComponent(url),'',function(){show_add_thumbnail();update(url,isupdate)});
+            show_add_thumbnail('<form><input id=url class=input_url disabled=disabled value="'+url+'"><button class=btn_submit disabled=disabled>thumbnailing...</button></form>');
+            if (url.length>11) {
+                request((isupdate?'update/':'')+encodeURIComponent(url),'',function(){show_add_thumbnail();update(url,isupdate)});
+            } else {show_add_thumbnail();update()}
         }
         function remove_thumbnail(url) {
             request('remove/'+encodeURIComponent(url),'',function(){update()});
+        }
+        function toggle(elementID) {
+            var e=document.getElementById(elementID);
+            e.style.display=(e.style.display=='none')?'block':'none';
         }
     </script>
 </head>
 <body>
     <div class=container>
-        <div id=thmbnlr_title class=thumbnail_title><a href=.>thmbnlr</a></div>
-        <div class=br></div>
         <div id=thmbnlr_add class=thumbnail_add></div>
         <div class=br></div>
         <div id=thmbnlr_thumbnail class=thumbnail></div>
         <div id=thmbnlr_thumbnail_info class=thumbnail_info></div>
-        <div id=thmbnlr_dump class=thumbnail_dump></div>
+        <div id=thmbnlr_dump class=thumbnail_dump style=display:none></div>
+        <div id=thmbnlr_info class=thmbnlr_info></div>
     </div>
     
     <script>update();show_add_thumbnail();</script>

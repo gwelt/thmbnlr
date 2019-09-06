@@ -1,7 +1,7 @@
 {
   "port": 3006,
   "subdir": "/thmbnlr",
-  "initURLs": ["https://npmjs.org","https://tumblr.com","https://unsplash.com"],
+  "initURLs": ["https://cnn.com","https://tumblr.com","https://unsplash.com"],
   "viewPort": { "width": 1024, "height": 600 },
   "screenshotOptions": {"path": "temp/image.png", "fullPage": false},
   "browserOptions": {"headless": true, "args":["--no-sandbox"]},
