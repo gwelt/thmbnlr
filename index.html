@@ -9,7 +9,7 @@
 
     <style>
         html,input,button {
-            font-family: 'Courier New';
+            font-family: Tahoma, Geneva, sans-serif;
             font-style: normal;
             font-weight: 400;
             font-display: fallback;
@@ -29,23 +29,24 @@
 
         .thumbnail_title {height:20px; margin:30px; font-size: 1.3rem;}
         .thumbnail_add {height:100px; width:640px; font-size: 1rem;}
-            .input_url {width:350px;}
-            .btn_submit {width:250px;}
+            .input_url {width:440px;}
+            .btn_submit {width:180px;}
         .br {clear:both;padding:0;}
         .thumbnail {height:300px;}
         .thumbnail_info {padding: 20px 0 40px 0;}
         .thumbnail_dump {padding: 20px 0 40px 0; clear:both;}
+	.thumbnail_dump img {margin:10px}
 
         button {
           background-color: #008CBA;
           border: 1px solid #008CBA;
           color: white;
-          padding: 14px 32px;
+          padding: 14px 2px;
           text-align: center;
           text-decoration: none;
           display: inline-block;
           font-size: 1rem;
-          margin: 4px 2px;
+          margin: 4px 8px;
           cursor: pointer;
         }        
         button:hover, button:focus {
@@ -61,7 +62,7 @@
           text-decoration: none;
           display: inline-block;
           font-size: 1rem;
-          margin: 4px 2px;
+          margin: 4px 0px;
         }        
     </style>
 
@@ -88,7 +89,7 @@
                 thumbnail_info=JSON.parse(thumbnail_info);
                 if (thumbnail_info.url)
                 {
-                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p>'+thumbnail_info.imagesize+' byte, '+thumbnail_info.requests+' requests, age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h<br><a href='+encodeURIComponent(url)+'>PNG</a> <a href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span>';
+                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p>'+thumbnail_info.imagesize+' byte, '+thumbnail_info.requests+' requests, age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h<br><a href='+encodeURIComponent(url)+'>PNG</a> | <a href=info/'+encodeURIComponent(url)+'>JSON</a> | <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> | <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span>';
                     document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+encodeURIComponent(url)+force+'>';
                 }
             });
