@@ -3,7 +3,7 @@
 <head>
     <title>thmbnlr</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fff">
     <meta name="Description" content="thmbnlr">
 
@@ -29,12 +29,12 @@
             text-align: center;
         }
 
-        .thumbnail_add {height:60px; margin:30px 0px; width:100%; font-size: 1rem;}
+        .thumbnail_add {margin:30px 0px; width:100%; font-size: 1rem;}
             .input_url {width:70%;}
-            .fetching {width:98%; disabled:disabled;}
             .btn_submit {width:25%;}
         .br {clear:both;padding:0;}
-        .thumbnail {height:300px; padding:10px 0px;}
+        .thumbnail {noheight:300px; padding:10px 0px;}
+        .thumbnail_img {noheight:100%}
         .thumbnail_info {padding: 10px 0 30px 0;}
         .thumbnail_dump {padding: 10px 0 10px 0;}
         .thumbnail_dump img {margin:10px}
@@ -50,7 +50,7 @@
           text-decoration: none;
           display: inline-block;
           font-size: 1rem;
-          margin: 4px 8px;
+          margin: 4px 0px 4px 4px;
           cursor: pointer;
         }
         button:hover, button:focus {
@@ -72,6 +72,7 @@
         }        
         input:hover, input:focus {background-color: #f3f3f3; border: 1px solid #e3e3e3; color:#202020;}        
         input:disabled {background-color: #e3e3e3; border: 1px solid #e3e3e3;}        
+	@media only screen and (max-width: 360px) {}
     </style>
 
     <script>
@@ -97,8 +98,8 @@
                 thumbnail_info=JSON.parse(thumbnail_info);
                 if (thumbnail_info.url)
                 {
+                    document.getElementById('thmbnlr_thumbnail').innerHTML='<img class=thumbnail_img src='+encodeURIComponent(url)+force+'>';
                     document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p><a class=link href='+encodeURIComponent(url)+'>PNG</a> <a class=link href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span><br>'+thumbnail_info.imagesize+' byte | '+thumbnail_info.requests+' requests | age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h';
-                    document.getElementById('thmbnlr_thumbnail').innerHTML='<img src='+encodeURIComponent(url)+force+'>';
                 }
             });
         }
