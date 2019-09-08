@@ -33,12 +33,34 @@
             .input_url {width:70%;}
             .btn_submit {width:25%;}
         .br {clear:both;padding:0;}
-        .thumbnail {height:300px; padding:10px 0px;}
-        .thumbnail_img {nobox-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); border-radius: 4px;}
+        .thumbnail {padding:10px 0px;}
+        .thumbnail_img {height:300px; border-radius: 4px;}
         .thumbnail_info {padding: 10px 0 30px 0;}
-        .thumbnail_dump {padding: 10px 0 10px 0;}
-        .thumbnail_dump img {margin:10px}
-        .thmbnlr_info {padding: 10px 0 30px 0; width:98%; border-top: 1px solid #BCBCBC;}
+
+        .thumbnail_dump {width:620px; padding: 10px 0 10px 0;}
+        .thumbnail_img_mini_container {position:relative; }
+        .thumbnail_img_mini {width:100px; margin:10px; cursor:pointer; box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 8px 0 rgba(0, 0, 0, 0.19); border-radius: 2px;}
+        .overlay {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background-color: #000;
+          color:#ffffff;
+          font-size:0.85rem;
+          overflow: hidden;
+          width: 100%;
+          height: 0;
+          transition: .2s ease;
+          cursor:pointer; 
+          opacity: 0.8;
+          border-radius: 2px;
+        }
+        .thumbnail_img_mini_container:hover .overlay {
+          height: 100%;
+        }
+
+        .thmbnlr_info {padding: 10px 0 30px 0; width:98%; border-top: 1px solid #BCBCBC; clear:both;}
 
         button {
           background-color: #008CBA;
@@ -70,7 +92,7 @@
           font-size: 1rem;
           margin: 4px 0px;
         }        
-        input:hover, input:focus {background-color: #f3f3f3; border: 1px solid #e3e3e3; color:#202020;}        
+        input:hover, input:focus {background-color: #ebebeb; border: 1px solid #e3e3e3; color:#202020;}        
         input:disabled {background-color: #e3e3e3; border: 1px solid #e3e3e3;}        
 	@media only screen and (max-width: 360px) {}
     </style>
@@ -106,8 +128,8 @@
         function show_thumbs(force_reload) {
             var force=force_reload?'/'+Math.random():'';
             var e=document.getElementById('thmbnlr_dump');
-            if (e.style.display=='block') {
-                document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span style=cursor:pointer onclick=show_thumbnail("'+c.url+'")><img style=height:60px src='+encodeURIComponent(c.url)+force+'></span> '},'');
+            if (e.style.display!=='none') {
+                document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span class=thumbnail_img_mini_container onclick=show_thumbnail("'+c.url+'")><span class=overlay>'+c.url+'</span><img class=thumbnail_img_mini src='+encodeURIComponent(c.url)+force+'></span>'},'');
             }
             document.getElementById('thmbnlr_info').innerHTML='thmbnlr is caching <span class=link onclick=toggle("thmbnlr_dump");show_thumbs();>'+info.count+' thumbnails</span> <a class=link href=info/>JSON</a> &nbsp; '+info.size+' | '+info.requests+' requests';
         }
