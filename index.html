@@ -97,7 +97,6 @@
 
     <script>
         var info, images = {};
-        var force=undefined;
         function request(uri,q,callback) {
             var xmlhttp=null;
             if (window.XMLHttpRequest) {xmlhttp=new XMLHttpRequest()} else {xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")};
@@ -109,7 +108,6 @@
         function update(url_of_image_to_show,force_info_reload) {
             if ((info==undefined)||(force_info_reload)) {
                 request('info','',function (r) {info=JSON.parse(r);document.getElementById('thmbnlr_dump').innerHTML='';update(url_of_image_to_show)});
-                force='?'+Date.now();
             } else {
                 images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
                 if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*images.length)].url);}
@@ -120,7 +118,7 @@
                 thumbnail_info=JSON.parse(thumbnail_info);
                 if (thumbnail_info.url)
                 {
-                    document.getElementById('thmbnlr_thumbnail').innerHTML='<img class=thumbnail_img src='+encodeURIComponent(url)+force+'>';
+                    document.getElementById('thmbnlr_thumbnail').innerHTML='<img class=thumbnail_img src='+encodeURIComponent(url)+'?'+thumbnail_info.timestamp+'>';
                     document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p><a class=link href='+encodeURIComponent(url)+'>PNG</a> <a class=link href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span><br>'+thumbnail_info.imagesize+' byte | '+thumbnail_info.requests+' requests | age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h';
                 }
             });
@@ -128,7 +126,7 @@
         function show_thumbs() {
             var e=document.getElementById('thmbnlr_dump');
             if ((e.style.display!=='none')&&(e.innerHTML=='')) {
-                e.innerHTML=images.reduce(function(a,c){return a+='<span class=thumbnail_img_mini_container onclick=show_thumbnail("'+c.url+'")><span class=overlay>'+c.url+'</span><img class=thumbnail_img_mini src='+encodeURIComponent(c.url)+force+'></span>'},'');
+                e.innerHTML=images.reduce(function(a,c){return a+='<span class=thumbnail_img_mini_container onclick=show_thumbnail("'+c.url+'")><span class=overlay>'+c.url+'</span><img class=thumbnail_img_mini src='+encodeURIComponent(c.url)+'?'+c.timestamp+'></span>'},'');
             }
             document.getElementById('thmbnlr_info').innerHTML='thmbnlr is caching <span class=link onclick=toggle("thmbnlr_dump");show_thumbs();>'+info.count+' thumbnails</span> <a class=link href=info/>JSON</a> &nbsp; '+info.size+' | '+info.requests+' requests';
         }
