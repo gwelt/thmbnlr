@@ -97,6 +97,7 @@
 
     <script>
         var info, images = {};
+        var force=undefined;
         function request(uri,q,callback) {
             var xmlhttp=null;
             if (window.XMLHttpRequest) {xmlhttp=new XMLHttpRequest()} else {xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")};
@@ -105,15 +106,16 @@
             xmlhttp.setRequestHeader("Content-type","text/plain");
             xmlhttp.send(q);
         }
-        function update(url_of_image_to_show,force_reload) {
-            request('info','',function (r) {
-                info=JSON.parse(r);
+        function update(url_of_image_to_show,force_info_reload) {
+            if ((info==undefined)||(force_info_reload)) {
+                request('info','',function (r) {info=JSON.parse(r);document.getElementById('thmbnlr_dump').innerHTML='';update(url_of_image_to_show)});
+                force='?'+Date.now();
+            } else {
                 images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
-                if (images&&images.length) {show_thumbs(force_reload);show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url,force_reload);}
-            })            
+                if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*images.length)].url);}
+            }
         }
-        function show_thumbnail(url,force_reload) {
-            var force=force_reload?'/'+Math.random():'';
+        function show_thumbnail(url) {
             request('info/'+encodeURIComponent(url),'',function(thumbnail_info){
                 thumbnail_info=JSON.parse(thumbnail_info);
                 if (thumbnail_info.url)
@@ -123,10 +125,9 @@
                 }
             });
         }
-        function show_thumbs(force_reload) {
-            var force=force_reload?'/'+Math.random():'';
+        function show_thumbs() {
             var e=document.getElementById('thmbnlr_dump');
-            if ( force_reload || (e.style.display!=='none' && e.innerHTML=='') ) {
+            if ((e.style.display!=='none')&&(e.innerHTML=='')) {
                 e.innerHTML=images.reduce(function(a,c){return a+='<span class=thumbnail_img_mini_container onclick=show_thumbnail("'+c.url+'")><span class=overlay>'+c.url+'</span><img class=thumbnail_img_mini src='+encodeURIComponent(c.url)+force+'></span>'},'');
             }
             document.getElementById('thmbnlr_info').innerHTML='thmbnlr is caching <span class=link onclick=toggle("thmbnlr_dump");show_thumbs();>'+info.count+' thumbnails</span> <a class=link href=info/>JSON</a> &nbsp; '+info.size+' | '+info.requests+' requests';
