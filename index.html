@@ -107,21 +107,29 @@
         }
         function update(url_of_image_to_show,force_info_reload) {
             if ((info==undefined)||(force_info_reload)) {
-                request('info','',function (r) {info=JSON.parse(r);document.getElementById('thmbnlr_dump').innerHTML='';update(url_of_image_to_show)});
+                request('info','',function (r) {
+                  info=JSON.parse(r);
+                  images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
+                  document.getElementById('thmbnlr_dump').innerHTML='';
+                  update(url_of_image_to_show);
+                });                
             } else {
-                images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
                 if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*images.length)].url);}
             }
         }
         function show_thumbnail(url) {
-            request('info/'+encodeURIComponent(url),'',function(thumbnail_info){
-                thumbnail_info=JSON.parse(thumbnail_info);
-                if (thumbnail_info.url)
-                {
-                    document.getElementById('thmbnlr_thumbnail').innerHTML='<img class=thumbnail_img src='+encodeURIComponent(url)+'?'+thumbnail_info.timestamp+'>';
-                    document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p><a class=link href='+encodeURIComponent(url)+'>PNG</a> <a class=link href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span><br>'+thumbnail_info.imagesize+' byte | '+thumbnail_info.requests+' requests | age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h';
-                }
-            });
+            if (images&&images.length) {
+              display_thumbnail(images.find(function(t){return t.url==url}));
+            } else {
+              request('info/'+encodeURIComponent(url),'',function(t_info){display_thumbnail(JSON.parse(t_info))});
+            }
+            function display_thumbnail(thumbnail_info) {
+              if (thumbnail_info&&thumbnail_info.url)
+              {
+                  document.getElementById('thmbnlr_thumbnail').innerHTML='<img class=thumbnail_img src='+encodeURIComponent(thumbnail_info.url)+'?'+thumbnail_info.timestamp+'>';
+                  document.getElementById('thmbnlr_thumbnail_info').innerHTML=thumbnail_info.title+'<br><a href='+thumbnail_info.url+'>'+thumbnail_info.url+'</a><p><a class=link href='+encodeURIComponent(url)+'>PNG</a> <a class=link href=info/'+encodeURIComponent(url)+'>JSON</a> <span class=link onclick=add_thumbnail("'+thumbnail_info.url+'","update")>update</span> <span class=link onclick=remove_thumbnail("'+thumbnail_info.url+'","remove")>remove</span><br>'+thumbnail_info.imagesize+' byte | '+thumbnail_info.requests+' requests | age: '+(Math.floor((Date.now()-thumbnail_info.timestamp)/3600000))+'h';
+              }
+            }
         }
         function show_thumbs() {
             var e=document.getElementById('thmbnlr_dump');
