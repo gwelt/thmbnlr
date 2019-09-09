@@ -21,7 +21,7 @@
             margin:auto;
             border:0px dotted red;
         }
-        a {color:#008CBA;}
+        a {color:#202020;}
         .link {color:#202020; border-radius: 0.25rem; background-color:#D8D8D8; text-decoration:none; line-height:2.5rem; margin:2px; padding: 4px 8px; cursor:pointer;}
         .link:hover {color:#ffffff; background-color:#008CBA;}
         .container {
@@ -34,30 +34,28 @@
             .btn_submit {width:25%;}
         .br {clear:both;padding:0;}
         .thumbnail {padding:10px 0px;}
-        .thumbnail_img {height:300px; border-radius: 4px;}
+        .thumbnail_img {height:300px; border-radius: 0px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);}
         .thumbnail_info {padding: 10px 0 30px 0;}
 
         .thumbnail_dump {width:620px; padding: 10px 0 10px 0;}
-        .thumbnail_img_mini_container {position:relative; }
-        .thumbnail_img_mini {width:100px; margin:10px; cursor:pointer; box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 8px 0 rgba(0, 0, 0, 0.19); border-radius: 2px;}
+        .thumbnail_img_mini_container {position:relative;}
+        .thumbnail_img_mini_container:hover .overlay {height: 1rem}
+        .thumbnail_img_mini {width:100px; margin:10px; cursor:pointer; box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.2); border-radius: 0px;}
         .overlay {
           position: absolute;
           bottom: 0;
           left: 0;
           right: 0;
-          background-color: #000;
+          background-color:#000000;
           color:#ffffff;
           font-size:0.85rem;
           overflow: hidden;
           width: 100%;
           height: 0;
-          transition: .2s ease;
+          transition: .1s ease;
           cursor:pointer; 
-          opacity: 0.8;
+          opacity: 0.9;
           border-radius: 2px;
-        }
-        .thumbnail_img_mini_container:hover .overlay {
-          height: 100%;
         }
 
         .thmbnlr_info {padding: 10px 0 30px 0; width:98%; border-top: 1px solid #BCBCBC; clear:both;}
@@ -79,7 +77,7 @@
           background-color: #009DDB;
           border: 1px solid #009DDB;
         }        
-        button:disabled {background-color: #BCBCBC; border: 1px solid #BCBCBC;}        
+        button:disabled {background-color: #BCBCBC; border: 1px solid #BCBCBC; color:#505050;}        
         input {
           background-color: #e3e3e3;
           border: 1px solid #e3e3e3;
@@ -111,7 +109,7 @@
             request('info','',function (r) {
                 info=JSON.parse(r);
                 images=info.thumbnails?JSON.parse(info.thumbnails):undefined;
-                if (images&&images.length) {show_thumbs();show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url,force_reload);}
+                if (images&&images.length) {show_thumbs(force_reload);show_thumbnail(url_of_image_to_show?url_of_image_to_show:images[Math.floor(Math.random()*Math.floor(images.length))].url,force_reload);}
             })            
         }
         function show_thumbnail(url,force_reload) {
@@ -128,8 +126,8 @@
         function show_thumbs(force_reload) {
             var force=force_reload?'/'+Math.random():'';
             var e=document.getElementById('thmbnlr_dump');
-            if (e.style.display!=='none') {
-                document.getElementById('thmbnlr_dump').innerHTML=images.reduce(function(a,c){return a+='<span class=thumbnail_img_mini_container onclick=show_thumbnail("'+c.url+'")><span class=overlay>'+c.url+'</span><img class=thumbnail_img_mini src='+encodeURIComponent(c.url)+force+'></span>'},'');
+            if ( force_reload || (e.style.display!=='none' && e.innerHTML=='') ) {
+                e.innerHTML=images.reduce(function(a,c){return a+='<span class=thumbnail_img_mini_container onclick=show_thumbnail("'+c.url+'")><span class=overlay>'+c.url+'</span><img class=thumbnail_img_mini src='+encodeURIComponent(c.url)+force+'></span>'},'');
             }
             document.getElementById('thmbnlr_info').innerHTML='thmbnlr is caching <span class=link onclick=toggle("thmbnlr_dump");show_thumbs();>'+info.count+' thumbnails</span> <a class=link href=info/>JSON</a> &nbsp; '+info.size+' | '+info.requests+' requests';
         }
@@ -138,13 +136,16 @@
         }
         function add_thumbnail(url,isupdate) {
             if (!url) {url=document.getElementById('url').value}
-            show_add_thumbnail('<form><input id=url class=input_url disabled=disabled value="'+url+'"><button class=btn_submit disabled=disabled>thumbnailing</button></form>');
             if (url.length>11) {
-                request((isupdate?'update/':'')+encodeURIComponent(url),'',function(){show_add_thumbnail();update(url,isupdate)});
-            } else {show_add_thumbnail();update()}
+                show_add_thumbnail('<form><input id=url class=input_url disabled=disabled value="'+url+'"><button id=btn_submit class=btn_submit disabled=disabled>thumbnailing</button></form>');
+                var c=0;
+                var e=document.getElementById('btn_submit');
+                var i=setInterval(function(){e.innerHTML=gentext('thumbnailing',c++);function gentext(t,i){var c=i%t.length; t=t.slice(0,c)+'<span style=color:#fff>'+t[c]+'</span>'+t.slice(c+1,t.length); return t}},100);
+                request((isupdate?'update/':'')+encodeURIComponent(url),'',function(){window.clearInterval(i);show_add_thumbnail();update(url,true)});
+            } else {show_add_thumbnail();update();}
         }
         function remove_thumbnail(url) {
-            request('remove/'+encodeURIComponent(url),'',function(){update()});
+            request('remove/'+encodeURIComponent(url),'',function(){update(undefined,true)});
         }
         function toggle(elementID) {
             var e=document.getElementById(elementID);
@@ -161,7 +162,6 @@
         <div id=thmbnlr_dump class=thumbnail_dump style=display:none></div>
         <div id=thmbnlr_info class=thmbnlr_info></div>
     </div>
-    
     <script>update();show_add_thumbnail();</script>
 </body>
 </html>
